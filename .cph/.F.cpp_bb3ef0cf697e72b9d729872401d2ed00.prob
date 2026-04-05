@@ -1,0 +1,1 @@
+{"name":"Local: F","url":"/media/Programing/programing/templates/F.cpp","tests":[{"id":1769858091893,"input":"7\n2\nBB\n4\nBBYY\n8\nYYYYBBBB\n7\nYYYBBBB\n2\nYB\n9\nBBYBBBYYB\n10\nBYYYYBBBBY","output":"YES\nYES\nYES\nYES\nNO\nYES\nNO"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"/media/Programing/programing/templates/F.cpp","group":"local","local":true}
