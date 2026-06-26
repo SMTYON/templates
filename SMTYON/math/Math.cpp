@@ -1,124 +1,22 @@
-const int mod = 1e9 + 7;
+#include <bits/stdc++.h>
+using namespace std;
+#define all(a)  a.begin(),a.end()
+#define ll long long
+#define ld long double
+#define endl '\n'
+#define SMTYON ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
+const ll mod = 1e9+7 , inf = 1e9 , MAXN = 1e5+5;
 
-// 1. Basic Modular Operations
-// ---------------------------------------------------------
 
 ll add(ll a, ll b) {return (a + b) % mod;}
-ll sub(ll a, ll b) {return ((a - b) % mod + mod) % mod;}
 ll mul(ll a, ll b) {return (a * b) % mod;}
-ll fp(ll base, ll power) {
-    if(!power) return 1;
-    ll res = fp(base,power/2);
-    res = mul(res,res);
-    if(power&1) res = mul(res,base);
-    return res;
-}
-ll inverse(ll n) {return fp(n, mod - 2);}
-ll divide(ll a, ll b) {return mul(a, inverse(b));}
-
-
-// 2. Factorization
-//----------------------------------------------------------
-const int MAXN = 1e7+5; 
-vector<short> spf(MAXN);
-
-void sieve() {
-    for(int i = 2 ;i*i <= MAXN ; i++){
-        if(spf[i])continue;
-        for(int j = i*i ;j <= MAXN ; j += i){
-            spf[j] = i;
-        }
-    }
-}
-
-vector<int> getFactorization(int x) {
-    vector<int> factors;
-    while (x > 1) {
-        int p = spf[x];
-        if(!p) p = x;
-        factors.push_back(p);
-        x /= p;
-    }
-    return factors;
-}
-
-// 3. Combinatorics (nCr, nPr, Stars & Bars)
-// ---------------------------------------------------------
-
-const int MAX_N = 2e5 + 5; 
-ll fact[MAX_N], invFact[MAX_N];
-void precompute_factorials() {
-    fact[0] = 1;
-    invFact[0] = 1;
-    for (int i = 1; i < MAX_N; i++) {
-        fact[i] = mul(fact[i - 1], i);
-    }
-
-    invFact[MAX_N - 1] = inverse(fact[MAX_N - 1]);
-    for (int i = MAX_N - 2; i >= 1; i--) {
-        invFact[i] = mul(invFact[i + 1], i + 1);
-    }
-}
-
-ll nCr(int n, int r) {
-    if (r < 0 || r > n) return 0;
-    return mul(fact[n], mul(invFact[r], invFact[n - r]));
-}
-
-ll nPr(int n, int r) {
-    if (r < 0 || r > n) return 0;
-    return mul(fact[n], invFact[n - r]);
-}
-
-// Stars and Bars
-// Problem: Distribute n identical items into k distinct bins.
-ll stars_and_bars(int n, int k) {
-    if (k == 0) return (n == 0);
-    return nCr(n + k - 1, k - 1);
-}
-
-long long catalan(int n) {
-    long long numer = nCr(2 * n, n);
-    long long denom = inverse(n + 1);
-    return mul(numer, denom);
-}
-
-
-// Works for n up to 10^18, provided r is small (< 10^6)
-// Complexity: O(r)
-long long nCr_large_n(long long n, int r) {
-    if (r < 0 || r > n) return 0;
-    if (r == 0 || r == n) return 1;
-    if (r > n / 2) r = n - r; 
-    
-    long long numer = 1;
-    for (int i = 0; i < r; i++) {
-        numer = mul(numer, (n - i) % mod);
-    }
-    
-    return mul(numer, invFact[r]); 
-}
-
-
-// Returns number of ways to arrange n items such that none are in their original spot.
-// Complexity: O(N) precompute, O(1) query.
-vector<long long> Dn;
-void precompute_derangements(int n) {
-    Dn.resize(n + 1);
-    Dn[0] = 1; 
-    Dn[1] = 0;
-    for(int i = 2; i <= n; i++) {
-        Dn[i] = mul(i - 1, add(Dn[i - 1], Dn[i - 2]));
-    }
-}
-
 
 // Solves a^x = b (mod m)
 // Returns -1 if no solution found.
 // Complexity: O(sqrt(m) * log(m))
-long long discrete_log(long long a, long long b, long long m) {
+ll discrete_log(ll a, ll b, ll m) {
     a %= m; b %= m;
-    long long k = 1, add = 0, g;
+    ll k = 1, add = 0, g;
     while ((g = gcd(a, m)) > 1) {
         if (b == k) return add;
         if (b % g) return -1;
@@ -126,13 +24,13 @@ long long discrete_log(long long a, long long b, long long m) {
         k = (k * 1ll * a / g) % m;
     }
 
-    long long n = sqrt(m) + 1;
-    long long an = 1;
+    ll n = sqrt(m) + 1;
+    ll an = 1;
     for (int i = 0; i < n; ++i)
         an = (an * 1ll * a) % m;
 
-    map<long long, int> vals;
-    long long cur = b;
+    map<ll, int> vals;
+    ll cur = b;
     for (int q = 0; q <= n; ++q) {
         vals[cur] = q;
         cur = (cur * 1ll * a) % m;
@@ -142,16 +40,15 @@ long long discrete_log(long long a, long long b, long long m) {
     for (int p = 1; p <= n; ++p) {
         cur = (cur * 1ll * an) % m;
         if (vals.count(cur)) {
-            long long ans = n * p - vals[cur] + add;
+            ll ans = n * p - vals[cur] + add;
             return ans;
         }
     }
     return -1;
 }
 
-// 4. Fibonacci (Matrix Exponentiation)
+// Fibonacci (Matrix Exponentiation)
 // ---------------------------------------------------------
-
 void multiply_matrix(ll F[2][2], ll M[2][2]) {
     ll a = add(mul(F[0][0], M[0][0]), mul(F[0][1], M[1][0]));
     ll b = add(mul(F[0][0], M[0][1]), mul(F[0][1], M[1][1]));
@@ -182,7 +79,7 @@ ll fibonacci(ll n) {
     return F[0][0];
 }
 
-// 1. Euler's Totient Function (Phi)
+// Euler's Totient Function (Phi)
 // Counts the number of integers in range [1, n] that are coprime to n.
 int phi(int n) {
     int result = n;
@@ -198,7 +95,7 @@ int phi(int n) {
     return result;
 }
 
-// 2. Precompute Phi for 1 to n (Sieve-like approach)
+// Precompute Phi for 1 to n (Sieve-like approach)
 // Useful if you need phi for many numbers up to N.
 // Complexity: O(N log(log N))
 void phi_1_to_n(int n) { 
@@ -216,7 +113,7 @@ void phi_1_to_n(int n) {
     }
 }
 
-// 3. Binary GCD (Stein's Algorithm)
+// Binary GCD (Stein's Algorithm)
 // Faster than standard recursive Euclidean GCD on some hardware.
 int gcd(int a, int b) {
     if (!a || !b) return a | b;
@@ -233,7 +130,7 @@ int gcd(int a, int b) {
     return a << shift; 
 }
 
-// 4. Extended Euclidean Algorithm
+// Extended Euclidean Algorithm
 // Solves: a*x + b*y = gcd(a,b)
 // Returns: gcd(a,b). Updates x and y with a valid solution.
 int egcd(int a, int b, int& x, int& y) {
@@ -249,7 +146,7 @@ int egcd(int a, int b, int& x, int& y) {
     return d;
 }
 
-// 5. Linear Diophantine Equation: Find ANY solution
+// Linear Diophantine Equation: Find ANY solution
 // Solves: a*x + b*y = c
 // Returns: true if solution exists, updates x0, y0, and g=gcd(a,b).
 bool find_any_solution(int a, int b, int c, int &x0, int &y0, int &g) {
@@ -285,13 +182,12 @@ bool find_positive_solutions(int a, int b, int c, int &x, int &y, int &g) {
     return false; 
 }
 
-
 void shift_solution(int & x, int & y, int a, int b, int cnt) {
     x += cnt * b;
     y -= cnt * a;
 }
 
-// 6. Linear Diophantine Equation: Count ALL solutions in range
+// Linear Diophantine Equation: Count ALL solutions in range
 // Counts solutions to a*x + b*y = c where minx <= x <= maxx and miny <= y <= maxy.
 int find_all_solutions(int a, int b, int c, int minx, int maxx, int miny, int maxy) {
     int x, y, g;
@@ -335,10 +231,7 @@ int find_all_solutions(int a, int b, int c, int minx, int maxx, int miny, int ma
     return (rx - lx) / abs(b) + 1;
 }
 
-// ---------------------------------------------------------
 // Chinese Remainder Theorem (CRT)
-// ---------------------------------------------------------
-
 ll egcd_ll(ll a, ll b, ll& x, ll& y) {
     if (b == 0) { x = 1; y = 0; return a; }
     ll x1, y1;
@@ -347,16 +240,15 @@ ll egcd_ll(ll a, ll b, ll& x, ll& y) {
     return d;
 }
 
-/**
+/*
  * Solves system: 
  * x = a[0] (mod m[0])
  * x = a[1] (mod m[1])
  * ...
- * Handles NON-COPRIME moduli.
  * * @param A Vector of remainders
  * @param M Vector of moduli
  * @return pair<val, lcm> where x = val (mod lcm). Returns {-1, -1} if no solution.
- */
+*/
 pair<ll, ll> chinese_remainder_theorem(const vector<ll>& A, const vector<ll>& M) {
     if (A.size() != M.size()) return {-1, -1};
     
@@ -398,4 +290,15 @@ pair<ll, ll> chinese_remainder_theorem(const vector<ll>& A, const vector<ll>& M)
         if (x < 0) x += lcm;
     }
     return {x, lcm};
+}
+
+signed main() {
+    SMTYON
+    int x_x = 1;
+    //cin >> x_x;
+    while (x_x--) {
+        
+    }
+        
+    return 0;
 }

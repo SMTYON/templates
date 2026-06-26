@@ -51,6 +51,17 @@ struct SegTree
       tree[x] = merage(tree[2*x+1], tree[2*x+2]);
     }
 
+    void update(int i, int v, int x, int lx, int rx) 
+    {
+        if(rx-lx == 1){
+          
+            return;
+        }
+        int m = (lx + rx)/2;
+        if(i<m) update(i, v, 2*x+1, lx, m);
+        else update(i, v, 2*x+2, m, rx);
+        tree[x] = merage(tree[2*x+1], tree[2*x+2]);
+    }
     // zero based Range Query [l,r)
     // Node query(int l, int r, int x, int lx, int rx) 
     // {
@@ -73,6 +84,8 @@ struct SegTree
     // }
 
     void build(vector<int>& a) { build(a, 0, 0, size); }
-    void update(int l, int r) { update(l, r, 0, 0, size);}
-    Node query(int l, int r) { return query(l, r, 0, 0, size); }
+    //void update(int l, int r) { update(l, r, 0, 0, size);}
+    //void update(int i, int v) { update(i, v, 0, 0, size);}
+    //Node query(int l, int r) { return query(l, r, 0, 0, size); }
+    //Node query(int x) { return query(x, 0, 0, size); }
 };

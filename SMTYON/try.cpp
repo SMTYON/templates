@@ -1,36 +1,15 @@
 #include <bits/stdc++.h>
 using namespace std;
+#define all(a)  a.begin(),a.end()
+#define ll long long
+#define ld long double
+#define endl '\n'
+#define SMTYON ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
 
 
+signed main() {
+    SMTYON;
+   
 
-queue<int> solve(queue<int> q, int v){
-    queue<int> ans;
-    int prev = -1;
-
-    while(q.size()){
-        int cur = q.front();
-        q.pop();
-        if(cur == v){
-            ans.push(cur);
-            cur = prev;
-        }else if(prev != -1){
-            ans.push(prev);
-        }
-        prev = cur;
-    }
-    ans.push(prev);
-    return ans;
-}
-
-int main(){
-    queue<int> a;
-    a.push(1);
-    a.push(2);
-    a.push(3);
-
-    a = solve(a,3);
-    while(a.size()){
-        cout << a.front() << ' ';
-        a.pop();
-    }
+    return 0;
 }
