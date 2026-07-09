@@ -8,8 +8,7 @@ using namespace std;
 const ll mod = 1e9+7 , inf = 1e9 , MAXN = 1e5+5;
 
 // Basic Modular Operations:
-ll add(ll a, ll b) {return (a + b) % mod;}
-ll sub(ll a, ll b) {return ((a - b) % mod + mod) % mod;}
+ll add(ll a, ll b) {return (a + b + mod) % mod;}
 ll mul(ll a, ll b) {return (a * b) % mod;}
 ll fp(ll base, ll power) {
     if(!power) return 1;

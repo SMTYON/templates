@@ -7,7 +7,7 @@ using namespace std;
 #define SMTYON ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
 const ll mod = 1e9+7 , inf = 1e9 , MAXN = 1e5+5;
 
-vector<short> spf(MAXN);
+vector<short> spf(MAXN+5);
 
 void sieve() {
     for(int i = 2 ;i*i <= MAXN ; i++){
