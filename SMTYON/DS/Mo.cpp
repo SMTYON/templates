@@ -1,3 +1,4 @@
+// TIME: (n+q)*log(n)
 // TODO: data structure that have the answer
 void add(int idx);     // TODO: add value at idx from data structure
 void remove(int idx);  // TODO: remove value at idx from data structure

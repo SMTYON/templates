@@ -1,64 +1,42 @@
-#include <iostream>
-#include <vector>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * A reusable template for Bipartite Matching with capacities on the right-side nodes.
- * Uses a modified Kuhn's Algorithm.
- * O(total_number_of_nodes * total_number_of_edges).
- */
-struct MultiBipartiteMatcher {
-    int n; // Number of left-side nodes
-    int m; // Number of right-side nodes
-    vector<vector<int>> adj;      // adj[u] = list of right nodes that left node u can connect to
-    vector<int> capacity;         // capacity[v] = max number of left nodes that right node v can accept
-    vector<vector<int>> match;    // match[v] = list of left nodes currently assigned to right node v
-    vector<bool> vis;             // Visited array to prevent cycles during augmenting paths
+struct BipartiteMatcher {
+    // Time Complexity: O(V * E) where V = left nodes, E = edges
+    // König's Theorem: Minimum Vertex Cover (MVC) = Maximum Bipartite Matching (MBM)
+    // Complement: Maximum Independent Set (MIS) = (Total Nodes) - MBM
+    
+    int n, m;
+    vector<vector<int>> adj;
+    vector<int> cap, matchL;
+    vector<vector<int>> matchR; // matchR[v] = left nodes matched to right node v
+    vector<bool> vis;
 
-    // Constructor
-    MultiBipartiteMatcher(int n_left, int n_right) {
-        n = n_left;
-        m = n_right;
-        adj.resize(n);
-        capacity.assign(m, 1);    // Default capacity is 1 (standard bipartite matching)
-        match.resize(m);
-    }
+    // Default capacity is 1 (standard 1-to-1 bipartite matching)
+    BipartiteMatcher(int n, int m) : n(n), m(m), adj(n), cap(m, 1), matchL(n, -1), matchR(m) {}
 
-    // Add a directed edge from left node u to right node v
-    void add_edge(int u, int v) {
-        adj[u].push_back(v);
-    }
+    void addEdge(int u, int v) { adj[u].push_back(v); }
+    
+    void setCapacity(int v, int c) { cap[v] = c; }
 
-    // Set the maximum capacity for a specific right node v
-    void set_capacity(int v, int cap) {
-        capacity[v] = cap;
-    }
-
-    // Set a uniform capacity for all right nodes
-    void set_all_capacities(int cap) {
-        capacity.assign(m, cap);
-    }
-
-    // The DFS function to find an augmenting path
     bool dfs(int u) {
         for (int v : adj[u]) {
-            if (vis[v]) continue; // Skip if this right node is already part of the current path
+            if (vis[v]) continue;
             vis[v] = true;
 
-            // Base case: If there is still room in node v, simply assign u to it
-            if (match[v].size() < capacity[v]) {
-                match[v].push_back(u);
+            // Base case: Right node has free capacity
+            if (matchR[v].size() < cap[v]) {
+                matchR[v].push_back(u);
+                matchL[u] = v;
                 return true;
             }
 
-            // Recursive case: Node v is full. Try to reassign one of its current occupants.
-            for (int i = 0; i < match[v].size(); ++i) {
-                int prev_u = match[v][i];
-                
-                // If we can find an alternate valid assignment for the previous node
+            // Recursive case: Try to reassign an existing match
+            for (int i = 0; i < matchR[v].size(); ++i) {
+                int prev_u = matchR[v][i];
                 if (dfs(prev_u)) {
-                    match[v][i] = u; // Take their spot
+                    matchR[v][i] = u;
+                    matchL[u] = v; // DFS updates prev_u's matchL automatically
                     return true;
                 }
             }
@@ -66,52 +44,67 @@ struct MultiBipartiteMatcher {
         return false;
     }
 
-    // Main function to compute the maximum matching
-    int max_matching() {
-        int total_matches = 0;
-        for (int i = 0; i < n; ++i) {
-            vis.assign(m, false); // Reset visited array for each left node
-            if (dfs(i)) {
-                total_matches++;
+    int maxMatching() {
+        int match = 0;
+        for (int u = 0; u < n; u++) {
+            vis.assign(m, false);
+            if (dfs(u)) match++;
+        }
+        return match;
+    }
+
+    // Returns {coverL, coverR}
+    pair<vector<int>, vector<int>> minVertexCover() {
+        vector<bool> visL(n, false), visR(m, false);
+        queue<int> q;
+        
+        // Start BFS from all unmatched left nodes
+        for (int u = 0; u < n; u++) {
+            if (matchL[u] == -1) {
+                visL[u] = true;
+                q.push(u);
             }
         }
-        return total_matches;
+
+        while (q.size()) {
+            int u = q.front(); q.pop();
+            for (int v : adj[u]) {
+                if (!visR[v]) {
+                    visR[v] = true;
+                    for (int matched_u : matchR[v]) {
+                        if (!visL[matched_u]) {
+                            visL[matched_u] = true;
+                            q.push(matched_u);
+                        }
+                    }
+                }
+            }
+        }
+
+        vector<int> coverL, coverR;
+        for (int u = 0; u < n; u++) if (!visL[u]) coverL.push_back(u);
+        for (int v = 0; v < m; v++) if (visR[v]) coverR.push_back(v);
+        return {coverL, coverR};
+    }
+
+    // Returns {indL, indR}
+    pair<vector<int>, vector<int>> maxIndependentSet() {
+        auto [coverL, coverR] = minVertexCover();
+        
+        vector<bool> inCovL(n, false), inCovR(m, false);
+        for (int u : coverL) inCovL[u] = true;
+        for (int v : coverR) inCovR[v] = true;
+
+        vector<int> indL, indR;
+        for (int u = 0; u < n; u++) if (!inCovL[u]) indL.push_back(u);
+        for (int v = 0; v < m; v++) if (!inCovR[v]) indR.push_back(v);
+        return {indL, indR};
+    }
+
+    bool isPerfectMatching() {
+        for (int u = 0; u < n; u++) {
+            if (matchL[u] == -1) return false;
+        }
+        return true;
     }
 };
-
-// ==========================================
-// Example Usage
-// ==========================================
-int main() {
-    // 5 Left nodes (0 to 4), 3 Right nodes (0 to 2)
-    MultiBipartiteMatcher matcher(5, 3);
-    
-    // Set capacities: Suppose right node 0 can take 2, node 1 can take 1, node 2 can take 2
-    matcher.set_capacity(0, 2);
-    matcher.set_capacity(1, 1);
-    matcher.set_capacity(2, 2);
-
-    // Add valid edges (Left -> Right)
-    matcher.add_edge(0, 0);
-    matcher.add_edge(0, 1);
-    matcher.add_edge(1, 2);
-    matcher.add_edge(2, 1);
-    matcher.add_edge(3, 0);
-    matcher.add_edge(4, 2);
-
-    // Compute the result
-    int max_assignments = matcher.max_matching();
-
-    cout << "Maximum elements matched: " << max_assignments << "\n";
-
-    // Optional: Print the actual assignments
-    for (int v = 0; v < matcher.m; ++v) {
-        cout << "Right node " << v << " is matched with Left nodes: ";
-        for (int u : matcher.match[v]) {
-            cout << u << " ";
-        }
-        cout << "\n";
-    }
-
-    return 0;
-}
