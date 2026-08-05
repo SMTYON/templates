@@ -5,7 +5,7 @@ struct BinaryTrie {
     int p = 0;
   };
   vector<Node> tree;
-  BinaryTrie() dp sos {
+  BinaryTrie(){
     tree.emplace_back();
     insert(0);
   }
